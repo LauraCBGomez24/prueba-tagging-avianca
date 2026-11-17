@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>avianca Availability</title>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <!-- Google Tag Manager: reemplaza GTM-XXXXXXX por el ID de tu contenedor -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-573SX8HW');</script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:#f5f5f5;color:#1d1d1f}
+    header{background:#000;color:#fff;padding:16px 24px;font-weight:700;letter-spacing:.02em}
+    main{max-width:1100px;margin:0 auto;padding:24px;display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:24px}
+    @media(max-width:800px){main{grid-template-columns:1fr}}
+    .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    h1{font-size:20px;margin:0 0 6px}
+    h2{font-size:16px;margin:0}
+    p.hint{font-size:13px;color:#6e6e73;margin:0 0 16px}
+    button{font:inherit;cursor:pointer;border-radius:999px;padding:10px 18px;border:1px solid #d2d2d7;background:#fff}
+    .btn-main{display:block;width:100%;margin-bottom:10px;background:#E4002B;border-color:#E4002B;color:#fff;font-weight:600}
+    .btn-main:hover{background:#c00025}
+    .viewer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .viewer-tools{display:flex;align-items:center;gap:12px;font-size:13px;color:#6e6e73}
+    .viewer-tools button{padding:6px 12px;font-size:13px}
+    #dl-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow:auto}
+    #dl-list li{border:1px solid #e5e5ea;border-left:4px solid #E4002B;border-radius:8px;padding:10px 12px;background:#fff}
+    #dl-list li.internal{border-left-color:#c7c7cc;opacity:.7}
+    .ev-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px}
+    .ev-name{font-weight:700}
+    .ev-meta{color:#8e8e93;font-variant-numeric:tabular-nums}
+    pre{margin:0;font-size:12px;line-height:1.45;white-space:pre-wrap;word-break:break-word;background:#f7f7f8;border-radius:6px;padding:8px;overflow-x:auto}
+    .empty{font-size:13px;color:#8e8e93}
+  </style>
+</head>
+<body>
+  <header>Prueba técnica · Data, Analytics &amp; Martech</header>
+  <main>
+    <section class="card">
+      <h1>Buscador de vuelos (simulado)</h1>
+      <p class="hint">Cada botón envía un evento <code>search_flight</code> al dataLayer.</p>
+      <button class="btn-main" id="btn-roundtrip">Buscar ida y vuelta</button>
+      <button class="btn-main" id="btn-oneway">Buscar solo ida</button>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <div class="viewer-head">
+        <h2>Visor del dataLayer</h2>
+        <div class="viewer-tools">
+          <label><input type="checkbox" id="dl-internal"> Mostrar eventos internos de GTM</label>
+          <button id="dl-clear" type="button">Limpiar visor</button>
+        </div>
+      </div>
+      <p class="hint">Muestra en vivo todo lo que entra al dataLayer, incluidos los eventos que inyecta GTM. El más reciente aparece arriba.</p>
+      <ul id="dl-list"></ul>
+      <p class="empty" id="dl-empty">Aún no hay eventos para mostrar. Haz clic en un botón de búsqueda.</p>
+    </section>
+  </main>
+
+  <script>
+    // ===== Simulación del evento search_flight de avianca.com =====
+    function searchFlight(data) {
+      window.dataLayer.push({
+        event: 'search_flight',
+        ecommerce: Object.assign({
+          event_category: 'NBF',
+          flight_type: 'Domestic',
+          flight_from: 'BOG',
+          flight_to: 'MDE',
+          search_term: 'BOG-MDE',
+          days_in_advance: 7,
+          coupon: 'NA',
+          page_location: window.location.href,
+          page_referrer: document.referrer,
+          page_title: document.title,
+          language: 'es',
+          screen_resolution: screen.width + 'x' + screen.height
+        }, data)
+      });
+    }
+    document.getElementById('btn-roundtrip').addEventListener('click', function () {
+      searchFlight({ trip_type: 'Round Trip', adult_num: 2, child_num: 1, infant_num: 0,
+                     date_departure: '20261118', date_return: '20261125' });
+    });
+    document.getElementById('btn-oneway').addEventListener('click', function () {
+      searchFlight({ trip_type: 'One Way', adult_num: 1, child_num: 0, infant_num: 0,
+                     date_departure: '20261118', date_return: 'NA' });
+    });
+
+    // ===== Visor del dataLayer (solo lectura: no modifica el dataLayer) =====
+    (function () {
+      var list = document.getElementById('dl-list');
+      var empty = document.getElementById('dl-empty');
+      var showInternal = document.getElementById('dl-internal');
+      var seen = 0;
+      var entries = [];
+
+      function isInternal(e) {
+        var name = e && e.event;
+        return !name || /^gtm\./.test(name);
+      }
+      function safeJson(obj) {
+        try {
+          return JSON.stringify(obj, function (k, v) {
+            if (k === 'gtm.uniqueEventId') return undefined;
+            if (v instanceof Element) return '<' + v.tagName.toLowerCase() + '>';
+            return v;
+          }, 2);
+        } catch (err) { return String(obj); }
+      }
+      function render() {
+        list.innerHTML = '';
+        var shown = 0;
+        for (var i = entries.length - 1; i >= 0; i--) {
+          var it = entries[i];
+          if (it.internal && !showInternal.checked) continue;
+          shown++;
+          var li = document.createElement('li');
+          if (it.internal) li.className = 'internal';
+          var head = document.createElement('div'); head.className = 'ev-head';
+          var name = document.createElement('span'); name.className = 'ev-name';
+          name.textContent = it.name;
+          var meta = document.createElement('span'); meta.className = 'ev-meta';
+          meta.textContent = '#' + it.index + ' · ' + it.time;
+          head.appendChild(name); head.appendChild(meta);
+          var pre = document.createElement('pre'); pre.textContent = it.json;
+          li.appendChild(head); li.appendChild(pre);
+          list.appendChild(li);
+        }
+        empty.style.display = shown ? 'none' : 'block';
+      }
+      function poll() {
+        var dl = window.dataLayer || [];
+        if (dl.length < seen) seen = 0;
+        if (dl.length > seen) {
+          for (var i = seen; i < dl.length; i++) {
+            var e = dl[i];
+            entries.push({
+              index: i,
+              name: (e && e.event) || '(sin evento)',
+              internal: isInternal(e),
+              time: new Date().toLocaleTimeString(),
+              json: safeJson(e)
+            });
+          }
+          seen = dl.length;
+          render();
+        }
+      }
+      showInternal.addEventListener('change', render);
+      document.getElementById('dl-clear').addEventListener('click', function () {
+        entries = []; render();
+      });
+      setInterval(poll, 300);
+      poll();
+    })();
+  </script>
+</body>
+</html>
